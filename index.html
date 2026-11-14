@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>考研政治 · 核心背诵神器（2027核心背诵笔记）</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23e11d48'/><text x='50' y='68' font-size='58' font-weight='bold' text-anchor='middle' fill='white'>背</text></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    [v-cloak] { display: none; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.45); border-radius: 3px; }
+    .cloze-hidden {
+      background-color: #1e293b;
+      color: transparent;
+      border-radius: 0.375rem;
+      padding: 1px 6px;
+      margin: 0 2px;
+      user-select: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    }
+    .cloze-hidden:hover {
+      background-color: #334155;
+    }
+    .cloze-revealed {
+      background-color: #fef2f2;
+      color: #be123c;
+      font-weight: 700;
+      border-bottom: 2px solid #fda4af;
+      border-radius: 0.25rem;
+      padding: 1px 4px;
+      margin: 0 1px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .cloze-highlight {
+      color: #be123c;
+      font-weight: 700;
+      background-color: #fff1f2;
+      padding: 0 3px;
+      border-radius: 0.25rem;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen selection:bg-rose-100 selection:text-rose-800">
+  <div id="app" v-cloak class="min-h-screen flex flex-col">
+    <!-- Top Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2">
+        <div class="flex items-center space-x-3 min-w-0">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 flex items-center justify-center text-white font-black text-lg sm:text-xl shadow-sm">
+            背
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center space-x-2">
+              <h1 class="text-sm sm:text-lg font-extrabold text-slate-900 truncate">考研政治 · 核心背诵神器</h1>
+              <span class="hidden lg:inline-block text-[11px] bg-rose-50 text-rose-700 border border-rose-200 font-semibold px-2 py-0.5 rounded-full">
+                2027核心背诵笔记 · 背诵部分全量
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 hidden sm:block truncate">
+              一轮进度 {{ round1Count }}/{{ chapters.length }} 章 · 二轮进度 {{ round2Count }}/{{ chapters.length }} 章 · 生疏本 {{ weakIds.length }} 条
+            </p>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center space-x-1 overflow-x-auto">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            @click="currentTab = tab.id"
+            :class="currentTab === tab.id ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+            class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap flex items-center space-x-1"
+          >
+            <span>{{ tab.icon }}</span>
+            <span class="hidden sm:inline">{{ tab.label }}</span>
+            <span v-if="tab.id === 'progress' && weakIds.length > 0" class="ml-0.5 px-1.5 py-0 text-[10px] bg-rose-500 text-white rounded-full font-bold">
+              {{ weakIds.length }}
+            </span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6">
+
+      <!-- ================================================================== -->
+      <!-- TAB 1: 章节背诵 (挖空遮挡 / 只看题干 / 沉浸通读)                     -->
+      <!-- ================================================================== -->
+      <section v-if="currentTab === 'recite'" class="flex flex-col lg:flex-row gap-5">
+        <!-- Left Sidebar: Subject & Chapter Tree -->
+        <aside class="lg:w-80 shrink-0 space-y-3">
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 sm:p-4 lg:sticky lg:top-20">
+            <!-- Subject Filter -->
+            <div class="flex flex-wrap gap-1.5 pb-3 border-b border-slate-100">
+              <button
+                v-for="sub in subjects"
+                :key="sub"
+                @click="selectSidebarSubject(sub)"
+                :class="sidebarSubject === sub ? 'bg-rose-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition"
+              >
+                {{ sub }}
+              </button>
+            </div>
+
+            <!-- Mobile Chapter Selector Toggle -->
+            <div class="mt-3 flex items-center justify-between lg:hidden">
+              <span class="text-xs font-bold text-slate-600">当前：{{ activeChapter.chapter }}</span>
+              <button @click="mobileChapterOpen = !mobileChapterOpen" class="text-xs font-semibold text-rose-600 px-2 py-1 rounded bg-rose-50">
+                {{ mobileChapterOpen ? '收起目录 ▲' : '切换章节 ▼' }}
+              </button>
+            </div>
+
+            <!-- Chapter List -->
+            <div :class="mobileChapterOpen ? 'block' : 'hidden lg:block'" class="mt-2.5 space-y-1 max-h-[64vh] overflow-y-auto custom-scrollbar pr-1">
+              <button
+                v-for="ch in sidebarChapters"
+                :key="ch.id"
+                @click="openChapter(ch.id); mobileChapterOpen = false"
+                :class="activeChapterId === ch.id ? 'bg-rose-50 border-rose-300 text-rose-900' : 'border-transparent hover:bg-slate-50 text-slate-700'"
+                class="w-full text-left px-3 py-2 rounded-xl border transition flex items-start justify-between gap-2"
+              >
+                <div class="min-w-0">
+                  <div class="text-xs font-bold leading-snug line-clamp-2">{{ ch.chapter }}</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">P.{{ ch.book_page }} · {{ ch.item_count }} 条</div>
+                </div>
+                <div class="flex items-center space-x-1 shrink-0 pt-0.5">
+                  <span
+                    :class="isRoundDone(ch.id, 1) ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'"
+                    class="w-5 h-5 rounded-md text-[10px] font-bold flex items-center justify-center"
+                    title="第1轮背诵"
+                  >1</span>
+                  <span
+                    :class="isRoundDone(ch.id, 2) ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-400'"
+                    class="w-5 h-5 rounded-md text-[10px] font-bold flex items-center justify-center"
+                    title="第2轮背诵"
+                  >2</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right Main Workspace -->
+        <div class="flex-1 min-w-0 space-y-4" v-if="activeChapter">
+          <!-- Sticky Chapter Toolbar -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="px-2 py-0.5 bg-rose-100 text-rose-700 text-xs font-bold rounded-md">{{ activeChapter.subject }}</span>
+                  <span class="text-xs text-slate-400">原书第 {{ activeChapter.book_page }} 页 · 共 {{ activeChapter.item_count }} 个背诵条目</span>
+                </div>
+                <h2 class="text-lg sm:text-xl font-black text-slate-900 mt-1">{{ activeChapter.chapter }}</h2>
+              </div>
+
+              <!-- 2-Round Check-in Buttons -->
+              <div class="flex items-center space-x-2">
+                <button
+                  @click="toggleRoundDone(activeChapter.id, 1)"
+                  :class="isRoundDone(activeChapter.id, 1) ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-300 hover:border-emerald-400'"
+                  class="px-3 py-1.5 rounded-xl border text-xs font-bold transition flex items-center space-x-1"
+                >
+                  <span>{{ isRoundDone(activeChapter.id, 1) ? '✓ 第1轮已背' : '○ 打卡第1轮' }}</span>
+                </button>
+                <button
+                  @click="toggleRoundDone(activeChapter.id, 2)"
+                  :class="isRoundDone(activeChapter.id, 2) ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-300 hover:border-indigo-400'"
+                  class="px-3 py-1.5 rounded-xl border text-xs font-bold transition flex items-center space-x-1"
+                >
+                  <span>{{ isRoundDone(activeChapter.id, 2) ? '✓ 第2轮已背' : '○ 打卡第2轮' }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Recite Mode Controls -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+              <div class="inline-flex bg-slate-100 p-1 rounded-xl">
+                <button
+                  @click="setReciteMode('cloze')"
+                  :class="reciteMode === 'cloze' ? 'bg-white text-slate-900 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900'"
+                  class="px-3 py-1.5 rounded-lg text-xs transition"
+                >
+                  ⬛ 挖空遮挡
+                </button>
+                <button
+                  @click="setReciteMode('prompt')"
+                  :class="reciteMode === 'prompt' ? 'bg-white text-slate-900 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900'"
+                  class="px-3 py-1.5 rounded-lg text-xs transition"
+                >
+                  ❓ 只看题干
+                </button>
+                <button
+                  @click="setReciteMode('read')"
+                  :class="reciteMode === 'read' ? 'bg-white text-slate-900 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900'"
+                  class="px-3 py-1.5 rounded-lg text-xs transition"
+                >
+                  👁️ 沉浸通读
+                </button>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <button
+                  v-if="reciteMode !== 'read'"
+                  @click="toggleRevealChapterAll"
+                  class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-white hover:bg-slate-700 transition"
+                >
+                  {{ chapterAllRevealed ? '全部重新遮挡 (Space)' : '全部揭晓答案 (Space)' }}
+                </button>
+                <button
+                  @click="onlyWeakInChapter = !onlyWeakInChapter"
+                  :class="onlyWeakInChapter ? 'bg-amber-100 text-amber-800 border-amber-300 font-bold' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
+                  class="px-3 py-1.5 rounded-lg border text-xs transition"
+                >
+                  {{ onlyWeakInChapter ? '🔥 仅看生疏/重点' : '全部条目' }}
+                </button>
+                <button
+                  @click="startChapterFlashcards(activeChapter.id)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition"
+                >
+                  📇 抽背本章
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Topics & Items List -->
+          <div v-if="filteredChapterTopics.length === 0" class="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-500">
+            <div class="text-3xl mb-2">🎉</div>
+            <div class="text-sm font-semibold">本章暂无标记为“生疏/重点”的条目</div>
+            <button @click="onlyWeakInChapter = false" class="mt-3 text-xs text-rose-600 font-bold hover:underline">查看本章全部条目</button>
+          </div>
+
+          <div
+            v-for="(topic, tIdx) in filteredChapterTopics"
+            :key="tIdx"
+            class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+          >
+            <!-- Topic Header -->
+            <div class="px-4 sm:px-6 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <h3 class="text-sm sm:text-base font-extrabold text-slate-900">{{ topic.title }}</h3>
+              <span class="text-xs text-slate-400 font-mono">{{ topic.items.length }} 条</span>
+            </div>
+
+            <!-- Items -->
+            <div class="divide-y divide-slate-100">
+              <div
+                v-for="item in topic.items"
+                :key="item.id"
+                class="p-4 sm:px-6 sm:py-4 hover:bg-slate-50/60 transition"
+              >
+                <!-- TEXT ITEM -->
+                <div v-if="item.type === 'text'" class="flex items-start justify-between gap-3">
+                  <div class="flex-1 min-w-0 text-[15px] sm:text-base leading-relaxed text-slate-800">
+                    <!-- Prompt-only mode with Q->A split -->
+                    <template v-if="reciteMode === 'prompt' && item.prompt && item.answer && !chapterAllRevealed && !isItemRevealed(item.id)">
+                      <span v-if="item.label" class="font-bold text-slate-500 mr-1">{{ item.label }}</span>
+                      <span class="font-semibold text-slate-900">{{ item.prompt }}：</span>
+                      <button
+                        @click="toggleRevealItem(item.id)"
+                        class="inline-block ml-1 px-3 py-0.5 rounded-md bg-slate-800 text-slate-200 hover:bg-slate-700 text-xs font-semibold align-middle transition"
+                      >
+                        点击揭晓答案（{{ item.answer.length }}字）
+                      </button>
+                    </template>
+
+                    <!-- Prompt-only mode when item has no colon split -> mask clozes or whole body -->
+                    <template v-else-if="reciteMode === 'prompt' && (!item.prompt || !item.answer) && !chapterAllRevealed && !isItemRevealed(item.id)">
+                      <template v-if="item.clozes && item.clozes.length > 0">
+                        <template v-for="(seg, sIdx) in tokenizeCloze(item.text, item.clozes)" :key="sIdx">
+                          <span v-if="!seg.isCloze">{{ seg.text }}</span>
+                          <button
+                            v-else
+                            @click="toggleClozeKey(item.id + '_' + seg.cIdx)"
+                            :class="isClozeRevealed(item.id + '_' + seg.cIdx) ? 'cloze-revealed' : 'cloze-hidden'"
+                            title="点击揭晓/遮挡"
+                          >{{ seg.text }}</button>
+                        </template>
+                      </template>
+                      <template v-else>
+                        <span @click="toggleRevealItem(item.id)" class="cursor-pointer bg-slate-800 text-transparent hover:bg-slate-700 rounded px-2 py-0.5 select-none">
+                          {{ item.text }}
+                        </span>
+                      </template>
+                    </template>
+
+                    <!-- Cloze mode -->
+                    <template v-else-if="reciteMode === 'cloze'">
+                      <template v-if="item.clozes && item.clozes.length > 0">
+                        <template v-for="(seg, sIdx) in tokenizeCloze(item.text, item.clozes)" :key="sIdx">
+                          <span v-if="!seg.isCloze">{{ seg.text }}</span>
+                          <button
+                            v-else
+                            @click="toggleClozeKey(item.id + '_' + seg.cIdx)"
+                            :class="(chapterAllRevealed || isItemRevealed(item.id) || isClozeRevealed(item.id + '_' + seg.cIdx)) ? 'cloze-revealed' : 'cloze-hidden'"
+                            title="点击揭晓/遮挡"
+                          >{{ seg.text }}</button>
+                        </template>
+                      </template>
+                      <template v-else>
+                        <span>{{ item.text }}</span>
+                      </template>
+                    </template>
+
+                    <!-- Immersive Read mode (or revealed prompt item) -->
+                    <template v-else>
+                      <template v-if="item.clozes && item.clozes.length > 0">
+                        <template v-for="(seg, sIdx) in tokenizeCloze(item.text, item.clozes)" :key="sIdx">
+                          <span v-if="!seg.isCloze">{{ seg.text }}</span>
+                          <span v-else class="cloze-highlight">{{ seg.text }}</span>
+                        </template>
+                      </template>
+                      <span v-else>{{ item.text }}</span>
+                      <button
+                        v-if="reciteMode === 'prompt' && isItemRevealed(item.id) && !chapterAllRevealed"
+                        @click="toggleRevealItem(item.id)"
+                        class="ml-2 text-xs text-slate-400 hover:text-slate-600 underline"
+                      >
+                        收起
+                      </button>
+                    </template>
+                  </div>
+
+                  <!-- Item Action Pills -->
+                  <div class="flex items-center space-x-1 shrink-0 pt-0.5">
+                    <button
+                      @click="toggleWeak(item.id)"
+                      :class="isWeak(item.id) ? 'bg-rose-100 text-rose-700 border-rose-300 font-bold' : 'bg-white text-slate-400 border-slate-200 hover:text-rose-600 hover:border-rose-200'"
+                      class="px-2 py-1 rounded-lg border text-[11px] transition"
+                      title="加入/移出生疏本"
+                    >
+                      {{ isWeak(item.id) ? '🔥 生疏' : '生疏' }}
+                    </button>
+                    <button
+                      @click="toggleStar(item.id)"
+                      :class="isStarred(item.id) ? 'text-amber-500 border-amber-300 bg-amber-50' : 'text-slate-400 border-slate-200 hover:text-amber-500'"
+                      class="px-2 py-1 rounded-lg border text-[11px] transition"
+                      title="标为重点"
+                    >
+                      {{ isStarred(item.id) ? '★' : '☆' }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- TABLE ITEM -->
+                <div v-else-if="item.type === 'table'" class="space-y-2.5">
+                  <div class="flex items-start justify-between gap-3">
+                    <div v-if="item.intro" class="text-[15px] font-bold text-slate-900 leading-relaxed">{{ item.intro }}</div>
+                    <div v-else class="text-xs font-bold text-slate-400">📋 对比记忆表</div>
+                    <div class="flex items-center space-x-1 shrink-0">
+                      <button
+                        @click="toggleWeak(item.id)"
+                        :class="isWeak(item.id) ? 'bg-rose-100 text-rose-700 border-rose-300 font-bold' : 'bg-white text-slate-400 border-slate-200 hover:text-rose-600'"
+                        class="px-2 py-1 rounded-lg border text-[11px] transition"
+                      >
+                        {{ isWeak(item.id) ? '🔥 生疏' : '生疏' }}
+                      </button>
+                      <button
+                        @click="toggleStar(item.id)"
+                        :class="isStarred(item.id) ? 'text-amber-500 border-amber-300 bg-amber-50' : 'text-slate-400 border-slate-200 hover:text-amber-500'"
+                        class="px-2 py-1 rounded-lg border text-[11px] transition"
+                      >
+                        {{ isStarred(item.id) ? '★' : '☆' }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-left border-collapse text-sm">
+                      <thead v-if="!isGenericHeaders(item.headers)" class="bg-slate-100 text-slate-700">
+                        <tr>
+                          <th
+                            v-for="(h, hIdx) in item.headers"
+                            :key="hIdx"
+                            class="px-3 py-2 font-bold border-b border-r last:border-r-0 border-slate-200 whitespace-nowrap"
+                          >
+                            {{ h }}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-200">
+                        <tr v-for="(row, rIdx) in item.rows" :key="rIdx" class="hover:bg-slate-50">
+                          <td
+                            v-for="(cell, cIdx) in row"
+                            :key="cIdx"
+                            @click="cIdx > 0 && cell && reciteMode !== 'read' && toggleClozeKey(item.id + '_r' + rIdx + '_c' + cIdx)"
+                            :class="[
+                              cIdx === 0 ? 'font-bold text-slate-900 bg-slate-50/70 min-w-[90px] sm:min-w-[120px]' : 'text-slate-700',
+                              (cIdx > 0 && cell && reciteMode !== 'read') ? 'cursor-pointer' : ''
+                            ]"
+                            class="px-3 py-2.5 border-r last:border-r-0 border-slate-200 align-top leading-relaxed whitespace-pre-line"
+                          >
+                            <template v-if="cIdx === 0 || !cell || reciteMode === 'read' || chapterAllRevealed || isItemRevealed(item.id) || isClozeRevealed(item.id + '_r' + rIdx + '_c' + cIdx)">
+                              <span :class="(cIdx > 0 && cell && reciteMode !== 'read') ? 'text-rose-700 font-semibold' : ''">{{ cell }}</span>
+                            </template>
+                            <template v-else>
+                              <span class="inline-block bg-slate-800 text-slate-200 text-xs px-2.5 py-0.5 rounded select-none hover:bg-slate-700">
+                                点击揭晓（{{ cell.length }}字）
+                              </span>
+                            </template>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Chapter Navigation & Check-in -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3">
+            <button
+              @click="goAdjacentChapter(-1)"
+              :disabled="activeChapterIndex <= 0"
+              class="px-4 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition"
+            >
+              ← 上一章
+            </button>
+
+            <div class="flex items-center space-x-2">
+              <button
+                @click="completeChapterAndNext(1)"
+                class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-sm transition"
+              >
+                ✓ 记完了！打卡第1轮并下一章
+              </button>
+            </div>
+
+            <button
+              @click="goAdjacentChapter(1)"
+              :disabled="activeChapterIndex >= chapters.length - 1"
+              class="px-4 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition"
+            >
+              下一章 →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 2: 卡片抽背 (Flashcard Active Recall)                           -->
+      <!-- ================================================================== -->
+      <section v-if="currentTab === 'flashcards'" class="max-w-4xl mx-auto space-y-5">
+        <!-- Deck & Filter Controls -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap gap-1.5">
+              <button
+                @click="setFlashScope('all')"
+                :class="flashScope === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold transition"
+              >
+                全书背诵卡 ({{ allFlashcards.length }})
+              </button>
+              <button
+                @click="setFlashScope('weak')"
+                :class="flashScope === 'weak' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-700 hover:bg-rose-100'"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold transition"
+              >
+                🔥 专攻生疏本 ({{ weakFlashcardCount }})
+              </button>
+              <button
+                @click="setFlashScope('core')"
+                :class="flashScope === 'core' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-800 hover:bg-amber-100'"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold transition"
+              >
+                ⭐ 定性词精选 ({{ coreTerms.length }})
+              </button>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <select
+                v-if="flashScope === 'all' || flashScope === 'chapter'"
+                v-model="flashSubject"
+                @change="rebuildFlashQueue"
+                class="text-xs font-semibold border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white text-slate-700"
+              >
+                <option value="全部">全部科目</option>
+                <option v-for="sub in subjects" :key="sub" :value="sub">{{ sub }}</option>
+              </select>
+              <button
+                @click="toggleFlashShuffle"
+                :class="flashShuffled ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-white text-slate-600 border-slate-200'"
+                class="px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition"
+              >
+                {{ flashShuffled ? '🔀 已乱序' : '➡️ 按顺序' }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="flashChapterFilter" class="flex items-center justify-between bg-rose-50 px-3 py-1.5 rounded-lg text-xs text-rose-800">
+            <span>当前限定章节：<strong>{{ getChapterTitle(flashChapterFilter) }}</strong></span>
+            <button @click="flashChapterFilter = ''; rebuildFlashQueue()" class="underline font-bold">清除章节限定</button>
+          </div>
+        </div>
+
+        <!-- Flashcard Body -->
+        <div v-if="flashQueue.length > 0 && currentFlashcard" class="space-y-4">
+          <div class="flex items-center justify-between text-xs text-slate-500 px-1">
+            <span>
+              队列进度：<strong class="text-slate-900 font-mono">{{ flashIndex + 1 }} / {{ flashQueue.length }}</strong>
+              <span v-if="masteredIds.includes(currentFlashcard.id)" class="ml-2 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-bold">已熟练</span>
+              <span v-else-if="weakIds.includes(currentFlashcard.id)" class="ml-2 px-2 py-0.5 bg-rose-100 text-rose-700 rounded-full font-bold">生疏</span>
+            </span>
+            <span>快捷键：Space 翻面 · ← 不会 · ↓ 模糊 · → 熟练</span>
+          </div>
+
+          <div
+            @click="flashFlipped = !flashFlipped"
+            class="bg-white rounded-3xl border border-slate-200 shadow-sm min-h-[320px] sm:min-h-[360px] p-6 sm:p-10 flex flex-col justify-between cursor-pointer hover:border-rose-300 transition select-none"
+          >
+            <!-- Top Meta -->
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-1 bg-rose-50 text-rose-700 font-bold text-xs rounded-lg">
+                  {{ currentFlashcard.subject }}
+                </span>
+                <span class="text-xs text-slate-500 font-medium">
+                  {{ currentFlashcard.chapter }}
+                  <template v-if="currentFlashcard.topic"> · {{ currentFlashcard.topic }}</template>
+                </span>
+              </div>
+              <button
+                @click.stop="toggleStar(currentFlashcard.id)"
+                :class="isStarred(currentFlashcard.id) ? 'text-amber-500' : 'text-slate-300 hover:text-amber-500'"
+                class="text-lg"
+                title="标为重点"
+              >
+                {{ isStarred(currentFlashcard.id) ? '★' : '☆' }}
+              </button>
+            </div>
+
+            <!-- Center Content -->
+            <div class="my-auto py-6 text-center space-y-5">
+              <div class="text-xs uppercase tracking-wider font-bold text-slate-400">
+                {{ flashFlipped ? '标准背诵表述' : '请口头背诵 / 默念答案' }}
+              </div>
+
+              <div class="text-xl sm:text-2xl font-black text-slate-900 leading-snug max-w-2xl mx-auto">
+                {{ currentFlashcard.prompt }}
+              </div>
+
+              <div v-if="flashFlipped" class="pt-5 border-t border-slate-100 max-w-2xl mx-auto">
+                <div class="text-lg sm:text-xl font-bold text-rose-700 leading-relaxed whitespace-pre-line text-left sm:text-center bg-rose-50/60 border border-rose-100 rounded-2xl p-4 sm:p-5">
+                  {{ formatMultiPoints(currentFlashcard.answer) }}
+                </div>
+                <div v-if="currentFlashcard.notes" class="mt-3 text-xs sm:text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3 text-left">
+                  💡 <strong>记忆点拨：</strong>{{ currentFlashcard.notes }}
+                </div>
+              </div>
+              <div v-else class="pt-4">
+                <span class="inline-block px-4 py-1.5 rounded-full bg-slate-100 text-slate-500 text-xs font-semibold">
+                  点击卡片或按 Space 揭晓答案
+                </span>
+              </div>
+            </div>
+
+            <!-- Card Footer Hint -->
+            <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-50">
+              <button @click.stop="prevFlashcard" class="hover:text-slate-700 font-semibold">← 上一张</button>
+              <button v-if="currentFlashcard.chapterId" @click.stop="jumpToChapter(currentFlashcard.chapterId)" class="text-rose-600 hover:underline font-semibold">
+                去原章节查看上下文 →
+              </button>
+            </div>
+          </div>
+
+          <!-- Memory Rating Action Buttons -->
+          <div class="grid grid-cols-3 gap-3">
+            <button
+              @click="rateFlashcard('forgot')"
+              class="py-3.5 px-3 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-xs sm:text-sm transition shadow-sm"
+            >
+              😕 完全不会 <span class="hidden sm:inline text-xs opacity-70">(1 / ←)</span>
+              <div class="text-[11px] font-normal text-rose-500 mt-0.5">加入生疏本 · 稍后重抽</div>
+            </button>
+            <button
+              @click="rateFlashcard('fuzzy')"
+              class="py-3.5 px-3 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold text-xs sm:text-sm transition shadow-sm"
+            >
+              🤔 有点模糊 <span class="hidden sm:inline text-xs opacity-70">(2 / ↓)</span>
+              <div class="text-[11px] font-normal text-amber-600 mt-0.5">保留在生疏本巩固</div>
+            </button>
+            <button
+              @click="rateFlashcard('mastered')"
+              class="py-3.5 px-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm transition shadow-sm"
+            >
+              😎 已熟练 <span class="hidden sm:inline text-xs opacity-80">(3 / →)</span>
+              <div class="text-[11px] font-normal text-emerald-100 mt-0.5">移出生疏本</div>
+            </button>
+          </div>
+        </div>
+
+        <div v-else class="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-3">
+          <div class="text-4xl">🏆</div>
+          <h3 class="text-lg font-bold text-slate-900">当前卡片队列已全部背完！</h3>
+          <p class="text-sm text-slate-500">生疏本为空，或当前筛选下没有更多卡片。</p>
+          <button @click="setFlashScope('all')" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-bold">
+            切换回全书背诵卡
+          </button>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 3: 进度与生疏本                                                  -->
+      <!-- ================================================================== -->
+      <section v-if="currentTab === 'progress'" class="space-y-6">
+        <!-- Stats Row -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs text-slate-500 font-semibold">第一轮背诵进度</div>
+            <div class="text-2xl sm:text-3xl font-black text-emerald-600 mt-1">{{ round1Count }} <span class="text-sm font-semibold text-slate-400">/ {{ chapters.length }} 章</span></div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs text-slate-500 font-semibold">第二轮巩固进度</div>
+            <div class="text-2xl sm:text-3xl font-black text-indigo-600 mt-1">{{ round2Count }} <span class="text-sm font-semibold text-slate-400">/ {{ chapters.length }} 章</span></div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs text-slate-500 font-semibold">已熟练抽认卡</div>
+            <div class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{{ masteredIds.length }} <span class="text-sm font-semibold text-slate-400">条</span></div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs text-slate-500 font-semibold">待攻克生疏条目</div>
+            <div class="text-2xl sm:text-3xl font-black text-rose-600 mt-1">{{ weakIds.length }} <span class="text-sm font-semibold text-slate-400">条</span></div>
+          </div>
+        </div>
+
+        <!-- Two-Round Matrix by Subject -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-base font-extrabold text-slate-900">📅 全书 46 章「考前两轮背诵」打卡表</h3>
+            <div class="flex items-center space-x-2 text-xs">
+              <button @click="exportProgress" class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-semibold">导出进度</button>
+              <label class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-semibold cursor-pointer">
+                导入进度
+                <input type="file" accept=".json" class="hidden" @change="importProgress">
+              </label>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div v-for="sub in subjects" :key="sub" class="border border-slate-200 rounded-xl p-3.5 space-y-2">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <span class="font-extrabold text-sm text-slate-900">{{ sub }}</span>
+                <span class="text-xs text-slate-500">
+                  1轮 {{ getSubjectRoundCount(sub, 1) }}/{{ getSubjectChapters(sub).length }} ·
+                  2轮 {{ getSubjectRoundCount(sub, 2) }}/{{ getSubjectChapters(sub).length }}
+                </span>
+              </div>
+              <div class="space-y-1 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+                <div
+                  v-for="ch in getSubjectChapters(sub)"
+                  :key="ch.id"
+                  class="flex items-center justify-between gap-2 text-xs py-1 px-1.5 rounded hover:bg-slate-50"
+                >
+                  <button @click="jumpToChapter(ch.id)" class="text-left text-slate-700 hover:text-rose-600 truncate flex-1 font-medium">
+                    {{ ch.chapter }}
+                  </button>
+                  <div class="flex items-center space-x-1 shrink-0">
+                    <button
+                      @click="toggleRoundDone(ch.id, 1)"
+                      :class="isRoundDone(ch.id, 1) ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'"
+                      class="w-6 h-5 rounded text-[10px] font-bold"
+                    >1</button>
+                    <button
+                      @click="toggleRoundDone(ch.id, 2)"
+                      :class="isRoundDone(ch.id, 2) ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'"
+                      class="w-6 h-5 rounded text-[10px] font-bold"
+                    >2</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weak Items List -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-extrabold text-slate-900">🔥 生疏背诵本（{{ weakItemsExpanded.length }} 条）</h3>
+            <button
+              v-if="weakFlashcardCount > 0"
+              @click="currentTab = 'flashcards'; setFlashScope('weak')"
+              class="px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition"
+            >
+              进入闪卡专攻 →
+            </button>
+          </div>
+
+          <div v-if="weakItemsExpanded.length === 0" class="text-center py-8 text-sm text-slate-400">
+            还没有加入生疏本的条目。在背诵或抽卡时点击“不会 / 模糊 / 生疏”即可自动收录。
+          </div>
+
+          <div v-else class="divide-y divide-slate-100">
+            <div v-for="entry in weakItemsExpanded" :key="entry.id" class="py-3 flex items-start justify-between gap-3">
+              <div class="space-y-1 min-w-0">
+                <div class="flex items-center space-x-2">
+                  <span class="px-2 py-0.5 bg-slate-100 text-slate-700 text-[11px] font-bold rounded">{{ entry.subject }}</span>
+                  <button @click="jumpToChapter(entry.chapterId)" class="text-xs text-rose-600 hover:underline font-medium truncate">
+                    {{ entry.chapter }}
+                  </button>
+                </div>
+                <div class="text-sm text-slate-800 leading-relaxed">{{ entry.summary }}</div>
+              </div>
+              <button
+                @click="toggleWeak(entry.id)"
+                class="shrink-0 px-2.5 py-1 rounded-lg border border-slate-200 text-xs text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition"
+              >
+                ✓ 已掌握移出
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 4: 考点检索 & 分析题万能原理                                     -->
+      <!-- ================================================================== -->
+      <section v-if="currentTab === 'search'" class="space-y-6">
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center space-x-2">
+            <button
+              @click="searchSubTab = 'lookup'"
+              :class="searchSubTab === 'lookup' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'"
+              class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition"
+            >
+              🔍 背诵原文检索
+            </button>
+            <button
+              @click="searchSubTab = 'templates'"
+              :class="searchSubTab === 'templates' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'"
+              class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition"
+            >
+              🎓 马原分析题万能原理（{{ essayTemplates.length }}）
+            </button>
+          </div>
+
+          <div v-if="searchSubTab === 'lookup'" class="relative">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="输入任意背诵关键词，如：两个结合、客观实在性、八七会议、社会主义本质、法制..."
+              class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition"
+            >
+            <span class="absolute left-3.5 top-3.5 text-slate-400">🔍</span>
+          </div>
+        </div>
+
+        <!-- Search Results -->
+        <div v-if="searchSubTab === 'lookup'" class="space-y-3">
+          <div v-if="!searchQuery.trim()" class="text-center py-10 text-sm text-slate-400">
+            在上方输入关键词，即时检索全书 46 章 {{ meta.total_items || 807 }} 条背诵原文
+          </div>
+          <div v-else-if="searchResults.length === 0" class="text-center py-10 text-sm text-slate-400">
+            未找到匹配 “{{ searchQuery }}” 的背诵条目
+          </div>
+          <div
+            v-for="res in searchResults"
+            :key="res.id"
+            class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center space-x-2 text-xs">
+                <span class="px-2 py-0.5 bg-rose-50 text-rose-700 font-bold rounded">{{ res.subject }}</span>
+                <span class="text-slate-500 font-medium">{{ res.chapter }} · {{ res.topic }}</span>
+              </div>
+              <button @click="jumpToChapter(res.chapterId)" class="text-xs font-bold text-rose-600 hover:underline shrink-0">
+                定位到本章 →
+              </button>
+            </div>
+            <div class="text-sm sm:text-[15px] text-slate-800 leading-relaxed whitespace-pre-line">
+              {{ res.text }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Essay Templates -->
+        <div v-if="searchSubTab === 'templates'" class="space-y-4">
+          <div v-for="tpl in essayTemplates" :key="tpl.id" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 class="text-base sm:text-lg font-extrabold text-slate-900">{{ tpl.title }}</h3>
+              <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg">{{ tpl.subject }}</span>
+            </div>
+            <div class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3">
+              <strong>🎯 适用场景：</strong>{{ tpl.applicable }}
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-1">
+                <div class="text-xs font-bold text-slate-500">核心原理（背诵）</div>
+                <p class="text-slate-800 leading-relaxed">{{ tpl.principle }}</p>
+              </div>
+              <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-1">
+                <div class="text-xs font-bold text-slate-500">方法论（背诵）</div>
+                <p class="text-slate-800 leading-relaxed">{{ tpl.methodology }}</p>
+              </div>
+            </div>
+            <div class="bg-emerald-50/70 rounded-xl p-4 border border-emerald-200 text-xs sm:text-sm text-emerald-900 whitespace-pre-line leading-relaxed">
+              {{ tpl.formula }}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 5: 理解避坑自测 (辅助验证Tab)                                    -->
+      <!-- ================================================================== -->
+      <section v-if="currentTab === 'quiz'" class="max-w-4xl mx-auto space-y-5">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap gap-1.5">
+            <button
+              @click="quizSubject = '全部'; quizIndex = 0; quizAnswered = false"
+              :class="quizSubject === '全部' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'"
+              class="px-3 py-1.5 rounded-lg text-xs font-bold transition"
+            >
+              全部 ({{ questions.length }})
+            </button>
+            <button
+              v-for="sub in subjects"
+              :key="sub"
+              @click="quizSubject = sub; quizIndex = 0; quizAnswered = false"
+              :class="quizSubject === sub ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'"
+              class="px-3 py-1.5 rounded-lg text-xs font-bold transition"
+            >
+              {{ sub }}
+            </button>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button
+              @click="quizWrongOnly = !quizWrongOnly; quizIndex = 0; quizAnswered = false"
+              :class="quizWrongOnly ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-700'"
+              class="px-3 py-1.5 rounded-lg text-xs font-bold transition"
+            >
+              错题本 ({{ quizWrongList.length }})
+            </button>
+          </div>
+        </div>
+
+        <div v-if="filteredQuiz.length > 0" class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+          <div class="flex items-center justify-between text-xs text-slate-500 border-b border-slate-100 pb-3">
+            <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 font-bold rounded-lg">
+              {{ currentQuizQ.subject }} · {{ currentQuizQ.chapter }}
+            </span>
+            <span class="font-mono font-bold">#{{ quizIndex + 1 }} / {{ filteredQuiz.length }}</span>
+          </div>
+
+          <div class="text-lg sm:text-xl font-bold text-slate-900 leading-relaxed py-4">
+            {{ currentQuizQ.statement }}
+          </div>
+
+          <div v-if="!quizAnswered" class="grid grid-cols-2 gap-4">
+            <button @click="submitQuiz(false)" class="py-3.5 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-sm transition">
+              ✗ 错误 / 干扰项 (← / A)
+            </button>
+            <button @click="submitQuiz(true)" class="py-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-sm transition">
+              ✓ 正确 / 真命题 (→ / D)
+            </button>
+          </div>
+
+          <div v-else class="space-y-4">
+            <div
+              :class="quizUserVerdict === currentQuizQ.answer ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'"
+              class="p-4 rounded-2xl border space-y-2"
+            >
+              <div class="font-extrabold text-sm">
+                {{ quizUserVerdict === currentQuizQ.answer ? '✅ 判断正确！' : '❌ 判断失误！' }}
+                正确答案：{{ currentQuizQ.answer ? '正确' : '错误（' + currentQuizQ.trap_type + '）' }}
+              </div>
+              <div class="text-xs sm:text-sm leading-relaxed opacity-90">
+                {{ currentQuizQ.explanation }}
+              </div>
+            </div>
+            <button @click="nextQuizQ" class="w-full py-3 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 transition">
+              下一题 (Space) →
+            </button>
+          </div>
+        </div>
+        <div v-else class="bg-white rounded-2xl border border-slate-200 p-10 text-center text-sm text-slate-500">
+          当前筛选暂无题目。
+        </div>
+      </section>
+    </main>
+
+    <!-- Toast -->
+    <transition name="fade">
+      <div v-if="toastMsg" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs sm:text-sm font-semibold">
+        {{ toastMsg }}
+      </div>
+    </transition>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+    const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+
+    createApp({
+      setup() {
+        const data = window.POLITICS_DATA || {};
+        const meta = ref(data.meta || {});
+        const chapters = ref(data.recitation || []);
+        const coreTerms = ref(data.core_terms || []);
+        const essayTemplates = ref(data.essay_templates || []);
+        const questions = ref(data.questions || []);
+
+        const subjects = ['马原', '毛中特', '习思想', '史纲', '思修'];
+
+        const tabs = [
+          { id: 'recite', label: '章节背诵', icon: '📖' },
+          { id: 'flashcards', label: '卡片抽背', icon: '📇' },
+          { id: 'progress', label: '进度与生疏本', icon: '📊' },
+          { id: 'search', label: '检索 & 原理', icon: '🔍' },
+          { id: 'quiz', label: '避坑自测', icon: '⚡' },
+        ];
+        const currentTab = ref('recite');
+
+        // Persistent State (v2 for recitation-first architecture)
+        const round1Done = ref(JSON.parse(localStorage.getItem('politics_r1_v2') || '[]'));
+        const round2Done = ref(JSON.parse(localStorage.getItem('politics_r2_v2') || '[]'));
+        const weakIds = ref(JSON.parse(localStorage.getItem('politics_weak_v2') || '[]'));
+        const starredIds = ref(JSON.parse(localStorage.getItem('politics_star_v2') || '[]'));
+        const masteredIds = ref(JSON.parse(localStorage.getItem('politics_mastered_v2') || '[]'));
+        const quizWrongList = ref(JSON.parse(localStorage.getItem('politics_wrong_v1') || '[]'));
+
+        const saveAll = () => {
+          localStorage.setItem('politics_r1_v2', JSON.stringify(round1Done.value));
+          localStorage.setItem('politics_r2_v2', JSON.stringify(round2Done.value));
+          localStorage.setItem('politics_weak_v2', JSON.stringify(weakIds.value));
+          localStorage.setItem('politics_star_v2', JSON.stringify(starredIds.value));
+          localStorage.setItem('politics_mastered_v2', JSON.stringify(masteredIds.value));
+          localStorage.setItem('politics_wrong_v1', JSON.stringify(quizWrongList.value));
+        };
+
+        const toastMsg = ref('');
+        let toastTimer = null;
+        const showToast = (msg) => {
+          toastMsg.value = msg;
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => { toastMsg.value = ''; }, 2200);
+        };
+
+        // ------------------------------------------------------------------
+        // TAB 1: 章节背诵
+        // ------------------------------------------------------------------
+        const savedChapterId = localStorage.getItem('politics_last_ch_v2');
+        const activeChapterId = ref(
+          (savedChapterId && chapters.value.some(c => c.id === savedChapterId))
+            ? savedChapterId
+            : (chapters.value[0]?.id || '')
+        );
+        const activeChapterObj = computed(() => chapters.value.find(c => c.id === activeChapterId.value) || chapters.value[0]);
+        const sidebarSubject = ref(activeChapterObj.value?.subject || '马原');
+        const mobileChapterOpen = ref(false);
+
+        const reciteMode = ref('cloze'); // cloze | prompt | read
+        const onlyWeakInChapter = ref(false);
+        const chapterAllRevealed = ref(false);
+        const revealedClozes = ref({});
+        const revealedItems = ref({});
+
+        const sidebarChapters = computed(() => chapters.value.filter(c => c.subject === sidebarSubject.value));
+        const activeChapter = computed(() => activeChapterObj.value);
+        const activeChapterIndex = computed(() => chapters.value.findIndex(c => c.id === activeChapterId.value));
+
+        const selectSidebarSubject = (sub) => {
+          sidebarSubject.value = sub;
+          const first = chapters.value.find(c => c.subject === sub);
+          if (first && activeChapter.value?.subject !== sub) {
+            openChapter(first.id);
+          }
+        };
+
+        const openChapter = (chId) => {
+          activeChapterId.value = chId;
+          localStorage.setItem('politics_last_ch_v2', chId);
+          const ch = chapters.value.find(c => c.id === chId);
+          if (ch) sidebarSubject.value = ch.subject;
+          chapterAllRevealed.value = false;
+          revealedClozes.value = {};
+          revealedItems.value = {};
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        const jumpToChapter = (chId) => {
+          openChapter(chId);
+          currentTab.value = 'recite';
+        };
+
+        const setReciteMode = (mode) => {
+          reciteMode.value = mode;
+          chapterAllRevealed.value = false;
+          revealedClozes.value = {};
+          revealedItems.value = {};
+        };
+
+        const toggleRevealChapterAll = () => {
+          chapterAllRevealed.value = !chapterAllRevealed.value;
+          if (!chapterAllRevealed.value) {
+            revealedClozes.value = {};
+            revealedItems.value = {};
+          }
+        };
+
+        const toggleClozeKey = (key) => {
+          revealedClozes.value[key] = !revealedClozes.value[key];
+        };
+        const isClozeRevealed = (key) => !!revealedClozes.value[key];
+
+        const toggleRevealItem = (id) => {
+          revealedItems.value[id] = !revealedItems.value[id];
+        };
+        const isItemRevealed = (id) => !!revealedItems.value[id];
+
+        const filteredChapterTopics = computed(() => {
+          if (!activeChapter.value) return [];
+          if (!onlyWeakInChapter.value) return activeChapter.value.topics;
+          return activeChapter.value.topics
+            .map(t => ({
+              ...t,
+              items: t.items.filter(it => weakIds.value.includes(it.id) || starredIds.value.includes(it.id))
+            }))
+            .filter(t => t.items.length > 0);
+        });
+
+        const isRoundDone = (chId, r) => (r === 1 ? round1Done.value : round2Done.value).includes(chId);
+        const toggleRoundDone = (chId, r) => {
+          const arr = r === 1 ? round1Done : round2Done;
+          if (arr.value.includes(chId)) {
+            arr.value = arr.value.filter(x => x !== chId);
+          } else {
+            arr.value = [...arr.value, chId];
+            showToast(`第${r}轮打卡完成！`);
+          }
+          saveAll();
+        };
+
+        const goAdjacentChapter = (delta) => {
+          const nextIdx = activeChapterIndex.value + delta;
+          if (nextIdx >= 0 && nextIdx < chapters.value.length) {
+            openChapter(chapters.value[nextIdx].id);
+          }
+        };
+
+        const completeChapterAndNext = (r) => {
+          if (activeChapter.value && !isRoundDone(activeChapter.value.id, r)) {
+            toggleRoundDone(activeChapter.value.id, r);
+          }
+          goAdjacentChapter(1);
+        };
+
+        const isWeak = (id) => weakIds.value.includes(id);
+        const toggleWeak = (id) => {
+          if (weakIds.value.includes(id)) {
+            weakIds.value = weakIds.value.filter(x => x !== id);
+            showToast('已移出生疏本');
+          } else {
+            weakIds.value = [...weakIds.value, id];
+            masteredIds.value = masteredIds.value.filter(x => x !== id);
+            showToast('已加入生疏本');
+          }
+          saveAll();
+        };
+
+        const isStarred = (id) => starredIds.value.includes(id);
+        const toggleStar = (id) => {
+          if (starredIds.value.includes(id)) {
+            starredIds.value = starredIds.value.filter(x => x !== id);
+          } else {
+            starredIds.value = [...starredIds.value, id];
+            showToast('已标为重点 ★');
+          }
+          saveAll();
+        };
+
+        // Safe tokenizer for cloze blanks (avoids raw v-html)
+        const tokenizeCloze = (text, clozes) => {
+          if (!text || !clozes || clozes.length === 0) {
+            return [{ text, isCloze: false, cIdx: -1 }];
+          }
+          // Find non-overlapping matches sorted by start index
+          const ranges = [];
+          clozes.forEach((kw, idx) => {
+            if (!kw || kw.length < 2) return;
+            let pos = 0;
+            const hit = text.indexOf(kw, pos);
+            if (hit !== -1) {
+              ranges.push({ start: hit, end: hit + kw.length, cIdx: idx });
+            }
+          });
+          ranges.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+          const cleanRanges = [];
+          let cursor = 0;
+          for (const rg of ranges) {
+            if (rg.start >= cursor) {
+              cleanRanges.push(rg);
+              cursor = rg.end;
+            }
+          }
+          const tokens = [];
+          let cur = 0;
+          for (const rg of cleanRanges) {
+            if (rg.start > cur) {
+              tokens.push({ text: text.slice(cur, rg.start), isCloze: false, cIdx: -1 });
+            }
+            tokens.push({ text: text.slice(rg.start, rg.end), isCloze: true, cIdx: rg.cIdx });
+            cur = rg.end;
+          }
+          if (cur < text.length) {
+            tokens.push({ text: text.slice(cur), isCloze: false, cIdx: -1 });
+          }
+          return tokens;
+        };
+
+        const isGenericHeaders = (headers) => {
+          return !headers || headers.every(h => /^栏位\d+$/.test(h));
+        };
+
+        // ------------------------------------------------------------------
+        // TAB 2: 卡片抽背 (Flashcards)
+        // ------------------------------------------------------------------
+        const allFlashcards = computed(() => {
+          const cards = [];
+          for (const ch of chapters.value) {
+            for (const t of ch.topics) {
+              for (const it of t.items) {
+                if (it.type === 'text' && it.prompt && it.answer) {
+                  cards.push({
+                    id: it.id,
+                    subject: ch.subject,
+                    chapter: ch.chapter,
+                    chapterId: ch.id,
+                    topic: t.title,
+                    prompt: it.prompt,
+                    answer: it.answer,
+                    notes: ''
+                  });
+                } else if (it.type === 'table' && it.rows && it.rows.length > 0 && it.headers.length === 2 && isGenericHeaders(it.headers)) {
+                  // 2-column key-value tables make great flashcards too!
+                  it.rows.forEach((row, rIdx) => {
+                    if (row[0] && row[1] && row[0].length <= 35 && row[1].length >= 2) {
+                      const prefix = it.intro ? it.intro.replace(/^\(\d+\)\s*/, '').replace(/[：:。]$/, '') + ' · ' : '';
+                      cards.push({
+                        id: `${it.id}_t${rIdx}`,
+                        subject: ch.subject,
+                        chapter: ch.chapter,
+                        chapterId: ch.id,
+                        topic: t.title,
+                        prompt: prefix + row[0],
+                        answer: row[1],
+                        notes: ''
+                      });
+                    }
+                  });
+                }
+              }
+            }
+          }
+          return cards;
+        });
+
+        const coreFlashcards = computed(() =>
+          coreTerms.value.map(ct => ({
+            id: `core_${ct.id}`,
+            subject: ct.subject,
+            chapter: ct.category,
+            chapterId: '',
+            topic: '高频定性词',
+            prompt: ct.question.replace(/[：:]\s*$/, ''),
+            answer: ct.answer,
+            notes: ct.notes || ''
+          }))
+        );
+
+        const flashScope = ref('all'); // all | weak | core
+        const flashSubject = ref('全部');
+        const flashChapterFilter = ref('');
+        const flashShuffled = ref(false);
+        const flashQueue = ref([]);
+        const flashIndex = ref(0);
+        const flashFlipped = ref(false);
+
+        const weakFlashcardCount = computed(() => {
+          const wSet = new Set(weakIds.value);
+          return [...allFlashcards.value, ...coreFlashcards.value].filter(c => wSet.has(c.id)).length;
+        });
+
+        const rebuildFlashQueue = () => {
+          let pool = [];
+          if (flashScope.value === 'core') {
+            pool = [...coreFlashcards.value];
+          } else if (flashScope.value === 'weak') {
+            const wSet = new Set(weakIds.value);
+            pool = [...allFlashcards.value, ...coreFlashcards.value].filter(c => wSet.has(c.id));
+          } else {
+            pool = [...allFlashcards.value];
+            if (flashChapterFilter.value) {
+              pool = pool.filter(c => c.chapterId === flashChapterFilter.value);
+            } else if (flashSubject.value !== '全部') {
+              pool = pool.filter(c => c.subject === flashSubject.value);
+            }
+          }
+          if (flashShuffled.value) {
+            for (let i = pool.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+          }
+          flashQueue.value = pool;
+          flashIndex.value = 0;
+          flashFlipped.value = false;
+        };
+
+        const setFlashScope = (scope) => {
+          flashScope.value = scope;
+          if (scope !== 'all') flashChapterFilter.value = '';
+          rebuildFlashQueue();
+        };
+
+        const toggleFlashShuffle = () => {
+          flashShuffled.value = !flashShuffled.value;
+          rebuildFlashQueue();
+        };
+
+        const startChapterFlashcards = (chId) => {
+          flashScope.value = 'all';
+          flashChapterFilter.value = chId;
+          rebuildFlashQueue();
+          currentTab.value = 'flashcards';
+        };
+
+        const currentFlashcard = computed(() => flashQueue.value[flashIndex.value] || null);
+
+        const rateFlashcard = (rating) => {
+          const card = currentFlashcard.value;
+          if (!card) return;
+          if (rating === 'forgot') {
+            if (!weakIds.value.includes(card.id)) weakIds.value = [...weakIds.value, card.id];
+            masteredIds.value = masteredIds.value.filter(x => x !== card.id);
+            // Re-insert 3 cards ahead for immediate reinforcement
+            const insertAt = Math.min(flashQueue.value.length, flashIndex.value + 4);
+            flashQueue.value.splice(insertAt, 0, card);
+            showToast('已加入生疏本 · 稍后再次抽背');
+          } else if (rating === 'fuzzy') {
+            if (!weakIds.value.includes(card.id)) weakIds.value = [...weakIds.value, card.id];
+            masteredIds.value = masteredIds.value.filter(x => x !== card.id);
+          } else {
+            weakIds.value = weakIds.value.filter(x => x !== card.id);
+            if (!masteredIds.value.includes(card.id)) masteredIds.value = [...masteredIds.value, card.id];
+          }
+          saveAll();
+          if (flashIndex.value < flashQueue.value.length - 1) {
+            flashIndex.value += 1;
+          } else {
+            flashIndex.value = 0;
+            showToast('本轮抽卡已全部过完！');
+          }
+          flashFlipped.value = false;
+        };
+
+        const prevFlashcard = () => {
+          if (flashIndex.value > 0) {
+            flashIndex.value -= 1;
+            flashFlipped.value = false;
+          }
+        };
+
+        const formatMultiPoints = (txt) => {
+          if (!txt) return '';
+          return txt.replace(/(?<!^)\s*(?=[②③④⑤⑥⑦⑧])/g, '\n');
+        };
+
+        const getChapterTitle = (chId) => chapters.value.find(c => c.id === chId)?.chapter || '';
+
+        // ------------------------------------------------------------------
+        // TAB 3: 进度与生疏本
+        // ------------------------------------------------------------------
+        const round1Count = computed(() => round1Done.value.length);
+        const round2Count = computed(() => round2Done.value.length);
+        const getSubjectChapters = (sub) => chapters.value.filter(c => c.subject === sub);
+        const getSubjectRoundCount = (sub, r) => {
+          const set = new Set(r === 1 ? round1Done.value : round2Done.value);
+          return chapters.value.filter(c => c.subject === sub && set.has(c.id)).length;
+        };
+
+        const itemLookupMap = computed(() => {
+          const map = {};
+          for (const ch of chapters.value) {
+            for (const t of ch.topics) {
+              for (const it of t.items) {
+                const summary = it.type === 'text'
+                  ? it.text
+                  : ((it.intro || '对比表格') + '：' + (it.rows || []).slice(0, 2).map(r => r.join(' | ')).join('；'));
+                map[it.id] = { id: it.id, subject: ch.subject, chapter: ch.chapter, chapterId: ch.id, summary };
+              }
+            }
+          }
+          for (const c of allFlashcards.value) {
+            if (!map[c.id]) {
+              map[c.id] = { id: c.id, subject: c.subject, chapter: c.chapter, chapterId: c.chapterId, summary: `${c.prompt}：${c.answer}` };
+            }
+          }
+          for (const c of coreFlashcards.value) {
+            map[c.id] = { id: c.id, subject: c.subject, chapter: c.chapter, chapterId: '', summary: `${c.prompt}：${c.answer}` };
+          }
+          return map;
+        });
+
+        const weakItemsExpanded = computed(() => {
+          return weakIds.value.map(id => itemLookupMap.value[id]).filter(Boolean);
+        });
+
+        const exportProgress = () => {
+          const payload = {
+            round1Done: round1Done.value,
+            round2Done: round2Done.value,
+            weakIds: weakIds.value,
+            starredIds: starredIds.value,
+            masteredIds: masteredIds.value,
+            exportedAt: new Date().toISOString()
+          };
+          const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `politics_recite_progress_${new Date().toISOString().slice(0, 10)}.json`;
+          a.click();
+          showToast('已导出背诵进度 JSON');
+        };
+
+        const importProgress = (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            try {
+              const p = JSON.parse(ev.target.result);
+              if (Array.isArray(p.round1Done)) round1Done.value = p.round1Done;
+              if (Array.isArray(p.round2Done)) round2Done.value = p.round2Done;
+              if (Array.isArray(p.weakIds)) weakIds.value = p.weakIds;
+              if (Array.isArray(p.starredIds)) starredIds.value = p.starredIds;
+              if (Array.isArray(p.masteredIds)) masteredIds.value = p.masteredIds;
+              saveAll();
+              showToast('背诵进度导入成功！');
+            } catch {
+              showToast('导入失败：JSON 格式无效');
+            }
+          };
+          reader.readAsText(file);
+        };
+
+        // ------------------------------------------------------------------
+        // TAB 4: 检索 & 万能原理
+        // ------------------------------------------------------------------
+        const searchSubTab = ref('lookup');
+        const searchQuery = ref('');
+        const searchResults = computed(() => {
+          const q = searchQuery.value.trim().toLowerCase();
+          if (!q) return [];
+          const hits = [];
+          for (const ch of chapters.value) {
+            for (const t of ch.topics) {
+              for (const it of t.items) {
+                let txt = '';
+                if (it.type === 'text') {
+                  txt = it.text;
+                } else {
+                  txt = (it.intro ? it.intro + '\n' : '') + (it.rows || []).map(r => r.join(' | ')).join('\n');
+                }
+                if (txt.toLowerCase().includes(q) || t.title.toLowerCase().includes(q)) {
+                  hits.push({ id: it.id, subject: ch.subject, chapter: ch.chapter, chapterId: ch.id, topic: t.title, text: txt });
+                  if (hits.length >= 60) return hits;
+                }
+              }
+            }
+          }
+          return hits;
+        });
+
+        // ------------------------------------------------------------------
+        // TAB 5: 理解避坑自测
+        // ------------------------------------------------------------------
+        const quizSubject = ref('全部');
+        const quizWrongOnly = ref(false);
+        const quizIndex = ref(0);
+        const quizAnswered = ref(false);
+        const quizUserVerdict = ref(null);
+
+        const filteredQuiz = computed(() => {
+          let list = questions.value;
+          if (quizSubject.value !== '全部') list = list.filter(q => q.subject === quizSubject.value);
+          if (quizWrongOnly.value) {
+            const ws = new Set(quizWrongList.value);
+            list = list.filter(q => ws.has(q.id));
+          }
+          return list;
+        });
+
+        const currentQuizQ = computed(() => filteredQuiz.value[quizIndex.value] || {});
+
+        const submitQuiz = (verdict) => {
+          if (quizAnswered.value || !currentQuizQ.value.id) return;
+          quizAnswered.value = true;
+          quizUserVerdict.value = verdict;
+          const ok = verdict === currentQuizQ.value.answer;
+          if (ok && quizWrongOnly.value) {
+            quizWrongList.value = quizWrongList.value.filter(id => id !== currentQuizQ.value.id);
+          } else if (!ok && !quizWrongList.value.includes(currentQuizQ.value.id)) {
+            quizWrongList.value = [...quizWrongList.value, currentQuizQ.value.id];
+          }
+          saveAll();
+        };
+
+        const nextQuizQ = () => {
+          quizIndex.value = (quizIndex.value < filteredQuiz.value.length - 1) ? quizIndex.value + 1 : 0;
+          quizAnswered.value = false;
+          quizUserVerdict.value = null;
+        };
+
+        // ------------------------------------------------------------------
+        // Keyboard Shortcuts
+        // ------------------------------------------------------------------
+        const handleKeydown = (e) => {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+          if (currentTab.value === 'recite') {
+            if (e.code === 'Space' && reciteMode.value !== 'read') {
+              e.preventDefault();
+              toggleRevealChapterAll();
+            }
+          } else if (currentTab.value === 'flashcards' && flashQueue.value.length > 0) {
+            if (e.code === 'Space') {
+              e.preventDefault();
+              flashFlipped.value = !flashFlipped.value;
+            } else if (e.key === '1' || e.key === 'ArrowLeft') {
+              e.preventDefault();
+              rateFlashcard('forgot');
+            } else if (e.key === '2' || e.key === 'ArrowDown') {
+              e.preventDefault();
+              rateFlashcard('fuzzy');
+            } else if (e.key === '3' || e.key === 'ArrowRight') {
+              e.preventDefault();
+              rateFlashcard('mastered');
+            }
+          } else if (currentTab.value === 'quiz' && filteredQuiz.value.length > 0) {
+            if (!quizAnswered.value) {
+              if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') submitQuiz(false);
+              else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') submitQuiz(true);
+            } else if (e.code === 'Space') {
+              e.preventDefault();
+              nextQuizQ();
+            }
+          }
+        };
+
+        onMounted(() => {
+          rebuildFlashQueue();
+          window.addEventListener('keydown', handleKeydown);
+        });
+        onUnmounted(() => {
+          window.removeEventListener('keydown', handleKeydown);
+        });
+
+        return {
+          meta, chapters, subjects, tabs, currentTab,
+          coreTerms, essayTemplates, questions, toastMsg,
+          // Tab 1
+          sidebarSubject, sidebarChapters, activeChapterId, activeChapter, activeChapterIndex,
+          mobileChapterOpen, reciteMode, onlyWeakInChapter, chapterAllRevealed, filteredChapterTopics,
+          selectSidebarSubject, openChapter, jumpToChapter, setReciteMode, toggleRevealChapterAll,
+          toggleClozeKey, isClozeRevealed, toggleRevealItem, isItemRevealed,
+          isRoundDone, toggleRoundDone, goAdjacentChapter, completeChapterAndNext,
+          isWeak, toggleWeak, isStarred, toggleStar, tokenizeCloze, isGenericHeaders,
+          // Tab 2
+          allFlashcards, flashScope, flashSubject, flashChapterFilter, flashShuffled,
+          flashQueue, flashIndex, flashFlipped, currentFlashcard, weakFlashcardCount,
+          setFlashScope, rebuildFlashQueue, toggleFlashShuffle, startChapterFlashcards,
+          rateFlashcard, prevFlashcard, formatMultiPoints, getChapterTitle,
+          // Tab 3
+          round1Done, round2Done, round1Count, round2Count, weakIds, masteredIds,
+          getSubjectChapters, getSubjectRoundCount, weakItemsExpanded, exportProgress, importProgress,
+          // Tab 4
+          searchSubTab, searchQuery, searchResults,
+          // Tab 5
+          quizSubject, quizWrongOnly, quizWrongList, quizIndex, quizAnswered, quizUserVerdict,
+          filteredQuiz, currentQuizQ, submitQuiz, nextQuizQ,
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

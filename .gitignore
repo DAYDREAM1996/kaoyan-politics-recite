@@ -1,0 +1,15 @@
+# 原始大体积 PDF 与 OCR 中间文本
+*.pdf
+extracted_text.txt
+
+# 无关子项目与运行日志、本地配置
+aetheria/
+server.log
+.claude/
+
+# Python / 系统临时文件
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+Thumbs.db
